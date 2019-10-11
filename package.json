@@ -1,0 +1,19 @@
+{
+  "name": "elastic_mirage_like_server",
+  "version": "1.0.0",
+  "description": "Mirage type application for simplifying elastic query",
+  "main": "index.js",
+  "scripts": {
+    "serve": "nodemon app"
+  },
+  "author": "Khurshid Alam Bhuyan",
+  "license": "ISC",
+  "dependencies": {
+    "@elastic/elasticsearch": "^7.4.0",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.3"
+  }
+}
