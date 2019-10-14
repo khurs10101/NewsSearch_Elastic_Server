@@ -7,8 +7,10 @@ const client = new Client({ node: 'http://search.ns-maap.com:9200' })
 exports.customSearch= (req, res, next)=>{
     //validate if the body is not empty
     let inputJson= req.body;
+    let news_sources= inputJson.sources
+    console.log(news_sources)
     let query= preprocessing(inputJson)
-    elasticSearch(query, res)
+    elasticSearch(query, news_sources, res)
 }
 
 const preprocessing= (inputJson)=>{
@@ -29,6 +31,7 @@ const preprocessing= (inputJson)=>{
     console.log(headline)
     console.log(articleText)
     console.log(author)
+    
 
     
 
@@ -55,8 +58,40 @@ const preprocessing= (inputJson)=>{
             }
         }
 
+        if(count!== undefined){
+            query.size=count
+        }
         return query
     }
+
+
+    //articletext only
+    if((articleText!== undefined) && (headline=== undefined)){
+
+        console.log("article only")
+        console.log(headline)
+        console.log(articleText)
+         
+        let query={
+            query:{
+                bool:{
+                    must:[
+                        {
+                            match_phrase_prefix:{
+                                title: articleText
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+
+        if(count!== undefined){
+            query.size=count
+        }
+        return query
+    }
+
 
     //headline and article text only
     if((headline!== undefined) && (articleText!== undefined)
@@ -80,20 +115,24 @@ const preprocessing= (inputJson)=>{
                 }
             }
         }
+
+        if(count!== undefined){
+            query.size=count
+        }
         return query
     }
 
     //fromDate and toDate only
     if((fromDate!== undefined) && (toDate!== undefined)){
 
-        console.log("fromdate to date only")
+        console.log("fromdate and toDate only")
         let query={
             query:{
                 bool:{
-                    must:[
+                    filter:[
                         {
                             range:{
-                                status_published:{
+                                post_date:{
                                     gte: fromDate,
                                     lte: toDate
                                 }
@@ -104,6 +143,9 @@ const preprocessing= (inputJson)=>{
             }
         }
 
+        if(count!== undefined){
+            query.size=count
+        }
         return query
 
     }
@@ -125,6 +167,10 @@ const preprocessing= (inputJson)=>{
             }
         }
 
+        if(count!== undefined){
+            query.size=count
+        }
+        
         return query
     }
 
@@ -135,7 +181,7 @@ const preprocessing= (inputJson)=>{
         let query={
             query: {
               bool: {
-                must: [
+                filter: [
                   {
                     range: {
                       'sentiment.sentimentPosScore': {
@@ -148,6 +194,10 @@ const preprocessing= (inputJson)=>{
               }
             }
           }
+
+        if(count!== undefined){
+            query.size= count
+        }
         console.log(query)
         return query
 
@@ -155,12 +205,12 @@ const preprocessing= (inputJson)=>{
 
 }
 
-const elasticSearch= (query, res)=>{
+const elasticSearch= (query, news_sources, res)=>{
     async function run(){
 
         const { body }= await client.search({
     
-            index: 'fbook',
+            index: news_sources,
             body: query
         })
     
